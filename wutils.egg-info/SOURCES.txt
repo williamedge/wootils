@@ -1,5 +1,4 @@
 setup.py
-wutils/depsiking.py
 wutils/filters.py
 wutils/fitters.py
 wutils/inpex23_filtfunc.py
@@ -7,6 +6,7 @@ wutils/linalg.py
 wutils/ofreqs.py
 wutils/plotnice.py
 wutils/plottimeseries.py
+wutils/sigint.py
 wutils/time_wutils.py
 wutils.egg-info/PKG-INFO
 wutils.egg-info/SOURCES.txt
