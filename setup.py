@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(
-    name='wutils',
+    name='wootils',
     version='0.0.1',    
-    description='A Python package for doing things I do too often to re-type. Pronounced "woo-tills".',
-    url='https://github.com/williamedge/wutils',
+    description='A Python package for doing things I do too often to re-type.',
+    url='https://github.com/williamedge/wootils',
     author='William Edge',
     author_email='william.edge@uwa.edu.au',
     license='BSD 3-clause',
-    packages=['wutils'],
+    packages=['wootils'],
     install_requires=['numpy',
                       'matplotlib'],
 
