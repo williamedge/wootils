@@ -1,13 +1,162 @@
 import xarray as xr
 import numpy as np 
-import wutils.filters as fl
+import wootils.filters as fl
 from afloat.timeseries import quick_harmonic
-from wutils.fitters import murphy_ss
+from wootils.fitters import murphy_ss
+
+
 
 def extract_and_flag(data, flag):
     data_new = data.copy()
     data_new[flag] = np.nan
     return data_new
+
+
+def create_time(nc_files):
+    ds1 = xr.open_dataset(nc_files[0])
+    dse = xr.open_dataset(nc_files[-1])
+
+    time_all = np.arange(ds1['time'][0].values, dse['time'][-1].values + np.timedelta64(1,'m'),\
+                        np.timedelta64(1,'m'))
+    z = ds1['z_nom'].values
+    # time_len = (time_all[-1] - time_all[0]).astype('timedelta64[m]')
+    return time_all, z
+
+
+def load_currents(nc_files):
+
+    time_all, z = create_time(nc_files)
+
+    data_u_all = np.full((len(time_all), len(z)), np.nan)
+    data_v_all = np.full((len(time_all), len(z)), np.nan)
+
+    for dgr in nc_files:
+        ds = xr.open_dataset(dgr)
+
+        tx = (time_all >= ds['time'][0].values) & (time_all <= ds['time'][-1].values)
+        
+        data_u_all[tx,:] = ds['water_u'].T
+        data_v_all[tx,:] = ds['water_v'].T
+
+    data_u = xr.DataArray(data=data_u_all, coords={'time':time_all, 'z':z})
+    data_v = xr.DataArray(data=data_v_all, coords={'time':time_all, 'z':z})
+    ds = data_u.to_dataset(name='u_meas')
+    ds['v_meas'] = data_v
+    return ds
+
+
+def load_temperature(nc_files):
+
+    time_all, z = create_time(nc_files)
+
+    data_u_all = np.full((len(time_all), len(z)), np.nan)
+
+    for dgr in nc_files:
+        ds = xr.open_dataset(dgr)
+
+        tx = (time_all >= ds['time'][0].values) & (time_all <= ds['time'][-1].values)
+        
+        data_u_all[tx,:] = ds['temperature'].T
+
+    data_u = xr.DataArray(data=data_u_all, coords={'time':time_all, 'z':z})
+    ds = data_u.to_dataset(name='temperature')
+    return ds
+
+
+def load_amp(nc_files, mode=0):
+
+    time_all, z = create_time(nc_files)
+
+    data_u_all = np.full((len(time_all),), np.nan)
+
+    for dgr in nc_files:
+        ds = xr.open_dataset(dgr)
+        tx = (time_all >= ds['time'][0].values) & (time_all <= ds['time'][-1].values)
+        data_u_all[tx] = ds['A_n'].sel(modes=mode)
+
+    data_u = xr.DataArray(data=data_u_all, coords={'time':time_all})
+    return data_u
+
+
+def zero_pad(x_arr, int_minutes=60):
+    
+    # Interpolate small gaps and zero-pad the rest
+    data_u_na = x_arr.interpolate_na(dim='time', max_gap=np.timedelta64(int_minutes,'m'))
+
+    # # Save the nans
+    # u_nan = np.isnan(data_u_na)
+    # v_nan = np.isnan(data_v_na)
+
+    # requires conversion back to numpy for 2D indexing
+    data_u_np = data_u_na.values
+    data_u_np[np.isnan(data_u_np)] = 0.0
+
+    # back to xarray
+    if 'z' in data_u_na.coords:
+        data_u_zp = xr.DataArray(data=data_u_np, coords={'time':x_arr.time, 'z':x_arr.z})
+    elif 'z_nom' in data_u_na.coords:
+        data_u_zp = xr.DataArray(data=data_u_np, coords={'time':x_arr.time, 'z_nom':x_arr.z_nom})
+    else:
+        data_u_zp = xr.DataArray(data=data_u_np, coords={'time':x_arr.time})
+
+    return data_u_zp
+
+
+def nans_back(new, old):
+    new_np = new.values.copy()
+    new_np[np.isnan(old)] = np.nan
+    return xr.DataArray(data=new_np, coords=new.coords)
+
+def zeros_back(data, nans):
+    dcoords = data.coords
+    data = data.values.copy()
+    data[np.isnan(nans)] = 0.0
+    return xr.DataArray(data=data, coords=dcoords)
+
+
+def get_tidal_currents(U, V, filt_low=30, filt_high=6):
+
+    if filt_low is not None:
+        u_tide = xr.apply_ufunc(fl.filter1d, U, filt_low, 1, 'highpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+        v_tide = xr.apply_ufunc(fl.filter1d, V, filt_low, 1, 'highpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+    else:
+        u_tide = U
+        v_tide = V
+
+    if filt_high is not None:
+        u_tide = xr.apply_ufunc(fl.filter1d, u_tide, filt_high, 1, 'lowpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+        v_tide = xr.apply_ufunc(fl.filter1d, v_tide, filt_high, 1, 'lowpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+
+    ds = u_tide.to_dataset(name='u_tide')
+    ds['v_tide'] = v_tide
+    return ds
+
+
+def get_tidal_amp(amp, filt_low=30, filt_high=6):
+
+    if filt_low is not None:
+        u_tide = xr.apply_ufunc(fl.filter1d, amp, filt_low, 1, 'highpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+
+    else:
+        u_tide = amp
+
+    if filt_high is not None:
+        u_tide = xr.apply_ufunc(fl.filter1d, u_tide, filt_high, 1, 'lowpass',\
+                        input_core_dims=[['time'],[],[],[]], output_core_dims=[['time']],\
+                        vectorize=True)
+
+    return u_tide
+
 
 
 def trim_interp_filter_xa(data_array, timedim, filt_hours, filttype, intlim_mins):

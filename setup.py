@@ -10,7 +10,11 @@ setup(
     license='BSD 3-clause',
     packages=['wootils'],
     install_requires=['numpy',
-                      'matplotlib'],
+                      'scipy',
+                      'xarray',
+                      'matplotlib',
+                    #   'afloat',
+                      'pandas'],
 
     classifiers=[
         'Programming Language :: Python :: 3',

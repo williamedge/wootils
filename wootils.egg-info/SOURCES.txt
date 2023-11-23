@@ -1,3 +1,4 @@
+README.md
 setup.py
 wootils/filters.py
 wootils/fitters.py
