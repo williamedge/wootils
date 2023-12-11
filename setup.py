@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='wootils',
-    version='0.0.1',    
+    version='0.0.2',    
     description='A Python package for doing things I do too often to re-type.',
     url='https://github.com/williamedge/wootils',
     author='William Edge',
