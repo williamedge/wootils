@@ -1,4 +1,24 @@
 import pandas as pd
+import numpy as np
+import xarray as xr
+
+
+def get_limidxs(time, start, end):
+    # Check if xarray
+    if isinstance(time, xr.DataArray):
+        time = time.values
+    lim_idxs = (time>=start) & (time<=end)
+    return lim_idxs
+
+def xr_wellspaced(xr_obj, var='time'):
+    common_space = np.median(np.diff(xr_obj[var].values))
+    return np.all(np.diff(xr_obj[var].values) == common_space)
+
+def time_median_missing(time_arr):
+    median_step = np.median(np.diff(time_arr))
+    missing_median = np.sum(np.diff(time_arr) != median_step)
+    return median_step, missing_median
+
 
 
 def month_index(time):

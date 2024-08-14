@@ -39,3 +39,32 @@ def normcorr(a, b, mode='valid', denan=True):
     else:
         nanx = np.full(a.shape, True)
     return np.correlate(norm(a[nanx])/len(a[nanx]), norm(b[nanx]), mode=mode)
+
+
+def polar_mean(angles):
+    # Calculate the unit vectors of theta
+    theta_x = np.cos(angles)
+    theta_y = np.sin(angles)
+
+    # Get the mean of the unit vectors
+    theta_x_mean = np.mean(theta_x)
+    theta_y_mean = np.mean(theta_y)
+
+    # Compute the mean angle
+    theta_mean = np.arctan2(theta_y_mean, theta_x_mean)
+    return theta_mean
+
+# Calculate the standard deviation of polar data
+def polar_stddev(angles):
+    la = len(angles)
+    sins = 0
+    coss = 0
+    for i in range(la):
+        sins += np.sin(angles[i])
+        coss += np.cos(angles[i])
+    
+    sins /= la
+    coss /= la
+
+    stddev = np.sqrt(-1* np.log(sins*sins + coss*coss))
+    return stddev

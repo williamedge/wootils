@@ -1,4 +1,5 @@
 import numpy as np
+import string
 import matplotlib.pyplot as plt
 
 import warnings
@@ -6,7 +7,7 @@ warnings.filterwarnings("ignore")
 
 def save(fname, fig, format='png', transparent=True, dpi=300):
     fig.savefig(fname + '.' + format, format=format, transparent=transparent,\
-                bbox_inches='tight', pad_inches=0.01, dpi=dpi)
+                bbox_inches='tight', pad_inches=0.06, dpi=dpi)
     return fig
 
 def saveclose(fname, fig):
@@ -16,9 +17,13 @@ def saveclose(fname, fig):
 def saveagu(fname, fig):
     save(fname, fig, format='jpg', transparent=False, dpi=600)
 
-def plot_align(ax):
-    x_lft = np.min([x.get_position().bounds[0] for x in ax])
-    x_rgt = np.min([x.get_position().bounds[2] for x in ax])
+def plot_align(ax, axspec=None):
+    if axspec is None:
+        x_lft = np.min([x.get_position().bounds[0] for x in ax])
+        x_rgt = np.min([x.get_position().bounds[2] for x in ax])
+    else:
+        x_lft = axspec.get_position().bounds[0]
+        x_rgt = axspec.get_position().bounds[2]
     for xx in ax:
         xx.set_position([x_lft, xx.get_position().bounds[1], x_rgt, xx.get_position().bounds[3]])
 
@@ -42,12 +47,14 @@ def horz_stack(subplots, hsize=8, vsize=2.5, wspace=0.075, w_ratio=None, **kwarg
     return fig, ax
 
 
-def basic_ts(time, ax, xlim=None, strip_titles=True):
+def basic_ts(time, ax, xlim=None, strip_titles=True, unrotate_xlabs=False):
     if xlim is None:
         xlim = (time[0], time[-1])
-    try:
-        lx = len(ax)
-    except:
+    # try:
+    #     lx = len(ax)
+    # except:
+    #     ax = [ax]
+    if np.size(ax) == 1:
         ax = [ax]
     for x in ax:
         x.set_xlim(xlim)
@@ -55,6 +62,48 @@ def basic_ts(time, ax, xlim=None, strip_titles=True):
         x.set_xlabel('')
         if strip_titles:
             x.set_title('')
-        x.set_xticklabels(x.get_xticklabels(), rotation=0, ha="center")
+        if unrotate_xlabs:
+            x.set_xticklabels(x.get_xticklabels(), rotation=0, ha="center")
         if x != ax[-1]:
             x.set_xticklabels('')
+    return None
+
+
+def plot_axislabels(ax, pos='topleft', h_ratios=None, type='a', c='k', xpos=None, ypos=None, fs=12, weight='bold'):
+    if not xpos:
+        if pos == 'topleft':
+            xpos = 0.03
+        elif pos == 'topright':
+            xpos = 0.97
+        else:
+            raise ValueError('pos must be topleft or topright')
+    if not ypos:
+        if h_ratios:
+            h_ratios = np.array(h_ratios)
+            ypos = 0.75 + 0.03*(h_ratios - 1)
+        else:
+            ypos = np.repeat(0.85, np.size(ax))
+    if type == 'a':
+        # Create a list of letters of len(ax)
+        labels = list(string.ascii_lowercase)[:len(ax)]
+    elif type == 'A':
+        labels = list(string.ascii_uppercase)[:len(ax)]
+    elif type == '1':
+        labels = list(string.digits)[:len(ax)]
+    else:
+        raise ValueError('type must be a, A or 1')
+    if np.size(ax) == 1:
+        ax = [ax]
+    # Add the labels
+    for x,l, yp in zip(ax, labels, ypos):
+        x.text(xpos, yp, '(' + l + ')', c=c, horizontalalignment='center', verticalalignment='center',\
+               transform=x.transAxes, weight=weight, fontsize=fs)
+    return None
+
+
+def set_mirrorlim(ax, data, which='y'):
+    lim_plt = np.max(np.abs(data))
+    if which == 'y':
+        ax.set_ylim(-1*lim_plt, lim_plt)
+    elif which == 'x':
+        ax.set_xlim(-1*lim_plt, lim_plt)

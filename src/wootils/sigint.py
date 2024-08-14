@@ -14,3 +14,18 @@ def coherence(f, sig_x, sig_y, Fs, nfft=None):
         coh_f = [coh[np.nanargmin(np.abs(fq - fqall))] for fq in f]
         fq_diff = [np.nanmin(np.abs(fq - fqall)) for fq in f]
     return coh_f, fq_diff
+
+
+# Correlation utils
+def numpy_xcorr(a, b):
+    a = (a - np.mean(a)) / (np.std(a) * len(a))
+    b = (b - np.mean(b)) / (np.std(b))
+    c = np.correlate(a, b, 'full')
+    return c
+
+
+def crosscorr(ssc_a, ssc_b, lag_window):
+    rs_np = numpy_xcorr(ssc_a, ssc_b)
+    a_lags = np.arange(ssc_a.shape[0] - lag_window, ssc_a.shape[0] + lag_window)
+    rs = rs_np[a_lags]
+    return rs
