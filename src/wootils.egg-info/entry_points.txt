@@ -1,2 +1,0 @@
-[console_scripts]
-wootils = wootils.app:entry_point

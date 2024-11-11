@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-def save(fname, fig, format='png', transparent=True, dpi=300):
+def save(fname, fig, format='png', transparent=True, dpi=300, pad_inches=0.06):
     fig.savefig(fname + '.' + format, format=format, transparent=transparent,\
-                bbox_inches='tight', pad_inches=0.06, dpi=dpi)
+                bbox_inches='tight', pad_inches=pad_inches, dpi=dpi)
     return fig
 
 def saveclose(fname, fig):
     save(fname, fig)
     plt.close(fig)
 
-def saveagu(fname, fig):
-    save(fname, fig, format='jpg', transparent=False, dpi=600)
+def saveagu(fname, fig, pad_inches=0.06):
+    save(fname, fig, format='jpg', transparent=False, dpi=600, pad_inches=pad_inches)
 
 def plot_align(ax, axspec=None):
     if axspec is None:
@@ -44,6 +44,11 @@ def horz_stack(subplots, hsize=8, vsize=2.5, wspace=0.075, w_ratio=None, **kwarg
     else:
         fig, ax = plt.subplots(1, subplots, figsize=(hsize, vsize),\
                             gridspec_kw={'wspace':wspace, 'width_ratios':w_ratio}, **kwargs)
+    return fig, ax
+
+def mixed_stack(subplots, hsize=8, vsize=4.5, hspace=0.05, wspace=0.075, h_ratio=None, w_ratio=None, **kwargs):
+    fig, ax = plt.subplots(subplots[0], subplots[1], figsize=(hsize, vsize),\
+                           gridspec_kw={'hspace':hspace, 'wspace':wspace, 'height_ratios':h_ratio, 'width_ratios':w_ratio}, **kwargs)
     return fig, ax
 
 
@@ -100,6 +105,14 @@ def plot_axislabels(ax, pos='topleft', h_ratios=None, type='a', c='k', xpos=None
                transform=x.transAxes, weight=weight, fontsize=fs)
     return None
 
+
+def set_mirrorax(ax, which='y'):
+    if which == 'y':
+        axlm = np.max(np.abs(ax.get_ylim()))
+        ax.set_ylim(-1*axlm, axlm)
+    elif which == 'x':
+        axlm = np.max(np.abs(ax.get_xlim()))
+        ax.set_xlim(-1*axlm, axlm)
 
 def set_mirrorlim(ax, data, which='y'):
     lim_plt = np.max(np.abs(data))

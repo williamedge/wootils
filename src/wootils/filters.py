@@ -58,15 +58,15 @@ def get_break_idxs(xr_data, timevar, limit_mins):
     ix_lim = np.append(ix_lim, len(xr_data[nanx])-1)
     return wh_nan[ix_lim]
 
-def filter1d(data, filt_hours, tstep_minutes, ftype='lowpass'):
+def filter1d(data, filt_hours, tstep_minutes, ftype='lowpass', axis=-1):
     sos = butter(2, 1/(filt_hours*60*60), btype=ftype, output='sos', fs=1/(60*tstep_minutes))
-    data_out = sosfiltfilt(sos, data)
+    data_out = sosfiltfilt(sos, data, axis=axis)
     return data_out  
 
-def filter1d_xr(data, filt_hours, tstep_minutes, ftype='lowpass'):
+def filter1d_xr(data, filt_hours, tstep_minutes, ftype='lowpass', axis=-1):
     data_out = data.copy()
     sos = butter(2, 1/(filt_hours*60*60), btype=ftype, output='sos', fs=1/(60*tstep_minutes))
-    data_out[:] = sosfiltfilt(sos, data)
+    data_out[:] = sosfiltfilt(sos, data, axis=axis)
     return data_out
 
 

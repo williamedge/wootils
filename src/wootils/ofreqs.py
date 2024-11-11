@@ -43,3 +43,7 @@ def calc_inertial(latitude):
     f = 2 * 7.2921e-5 * np.sin(np.deg2rad(latitude))
     cpd = (24*60*60) / (2*np.pi / -f)
     return f, cpd
+
+
+def get_annual_harmonic(n_harmonics=3):
+    return np.arange(1, n_harmonics+1) / (60*60*24*365.25)

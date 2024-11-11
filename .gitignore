@@ -2,3 +2,5 @@ __pycache__/*
 dist/*
 wootils.egg-info/*
 wootils/__pycache__/*
+src/wootils.egg-info/
+src/__pycache__/
