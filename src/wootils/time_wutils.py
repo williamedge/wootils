@@ -25,6 +25,11 @@ def nearest_hour(time_xr, hour_step_int):
     return hr.astype('datetime64[D]') + np.timedelta64(int(hr.dt.hour), 'h')
 
 
+def nan_wraptime(da, nan_days=[0,364,365,366]):
+    for n in nan_days:
+        da.loc[da.time.dt.dayofyear == n] = np.nan
+    return da
+
 
 def month_index(time):
     return pd.DatetimeIndex(pd.Series(time)).month
