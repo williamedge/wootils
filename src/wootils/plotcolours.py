@@ -119,9 +119,11 @@ def colors_and_quivers(ds, coords=['longitude','latitude'], pvars=['east_vel','n
 
 def plot_colors_and_quivers(ax, Xg, Yg, Xq, Yq, Uq, Vq, cmap, bathy, qv_dict):
     z = np.arange(np.prod(Xg.shape)).reshape(Xg.shape)
-    ax.pcolormesh(Xg, Yg, z, cmap=cmap, shading='auto')
-    ax.quiver(Xq, Yq, Uq, Vq, color=[0.3, 0.3, 0.3, 0.25], angles='uv',
+    pc = ax.pcolormesh(Xg, Yg, z, cmap=cmap, shading='auto')
+    qv = ax.quiver(Xq, Yq, Uq, Vq, color=[0.3, 0.3, 0.3, 0.25], angles='uv',
               scale=qv_dict['qv_scale'], scale_units='inches', width=qv_dict['qv_width'],
               headwidth=qv_dict['qv_headwidth'], headlength=qv_dict['qv_headlength'])
-    ax.tricontour(bathy.xv, bathy.yv, bathy.dv, levels=np.arange(200,1000,200), colors='grey', linewidths=1, linestyles='--')
+    if bathy is not None:
+        ax.tricontour(bathy.xv, bathy.yv, bathy.dv, levels=np.arange(200,1000,200), colors='grey', linewidths=1, linestyles='--')
     ax.set(xlabel='', ylabel='', title='')
+    return pc, qv
