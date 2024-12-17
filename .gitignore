@@ -4,3 +4,4 @@ wootils.egg-info/*
 wootils/__pycache__/*
 src/wootils.egg-info/
 src/__pycache__/
+src/wootils/__pycache__/
