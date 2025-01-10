@@ -4,7 +4,6 @@ from wootils.wootxr import xrwrap
 from wootils.uwindows import *
 
 
-
 @xr.register_dataarray_accessor("ufilt")
 class ufilters(xrwrap):
     '''
@@ -61,6 +60,18 @@ class BaseRolling:
                                                  self.coord_thin,
                                                  self.new_coord)
         return self
+    
+    
+    def savgol(self, weights='boxcar', **kwargs):
+        if weights == 'boxcar':
+            self = self.boxcar()
+        elif weights == 'gaussian':
+            self = self.gaussian()
+        self.type = 'savgol'
+        self.wtype = weights
+        self.polyorder = kwargs.get('polyorder', 2)
+        return self        
+        
 
     def gaussian(self, truncate=4, **kwargs):
         self.type = 'gaussian'
@@ -92,14 +103,22 @@ class BaseRolling:
                 # Remove the nan values
                 nanx = ~np.isnan(data[start:end])
                 # Calculate the function weights
-                if self.type == 'boxcar':
+                if (self.type == 'boxcar') or (self.wtype == 'boxcar'):
                     weights = np.ones_like(data[start:end][nanx])
-                elif self.type == 'gaussian':
+                elif (self.type == 'gaussian') or (self.wtype == 'gaussian'):
                     weights = gaussian_uweights(coords[self.roll_dim][i],
                                                 self._obj[self.roll_dim][start:end][nanx].values,
                                                 self.window_size)
-                # Apply the rolling function to the data within the window
-                rolled_data[i] = func(data[start:end][nanx] * weights, **kwargs)
+                if self.type == 'savgol':
+                    # Apply the Savitzky-Golay filter to the data within the window
+                    time = self._obj[self.roll_dim][start:end][nanx].values - coords[self.roll_dim][i]
+                    rolled_data[i] = self.savgol_ufilt(time,
+                                                       data[start:end][nanx],
+                                                       weights,
+                                                       self.polyorder)[0]
+                else:
+                    # Apply the rolling function to the data within the window
+                    rolled_data[i] = func(data[start:end][nanx] * weights, **kwargs)
 
         # Preserve other dimensions and coordinates
         for dim in self._obj.dims:
@@ -249,6 +268,21 @@ class BaseRolling:
         max_periods = int(window_size / median_step)
         
         return max_periods
+    
+    @staticmethod
+    def savgol_ufilt(time, data, weights, polyorder=2):
+        '''
+        Apply an unstructured Savitzky-Golay filter to the data. 
+        '''
+        # Set up the Vandermonde matrix for the polynomial fit
+        A = np.vander(time, N=polyorder + 1, increasing=True)
+
+        # Solve the weighted least-squares problem
+        W = np.diag(weights)
+        ATA = A.T @ W @ A
+        ATy = A.T @ W @ data
+        c = np.linalg.solve(ATA, ATy)  # Polynomial coefficients
+        return c
     
 
 
