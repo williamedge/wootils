@@ -85,3 +85,11 @@ def season_index(month_idx, seasons='S'):
 
     return month_idx.to_series().apply(lambda x: season_dict[str(x)]).values
 
+
+def is_regular_time_xr(da, step=None):
+    """Check if the time dimension is regular. Check if it matches a given step."""
+    time_diff = np.diff(da['time'].values)
+    regular = np.all(time_diff == time_diff[0])
+    if step is not None:
+        regular &= time_diff[0] == step
+    return regular
