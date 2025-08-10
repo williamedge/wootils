@@ -82,6 +82,19 @@ def season_index(month_idx, seasons='S'):
                     '10': 'Laja',
                     '11': 'Laja',
                     '12': 'Man-gala'}
+    elif seasons == 'yawuru_adjusted':
+        season_dict = {'1': 'Man-gala',
+                    '2': 'Man-gala',
+                    '3': 'Man-gala', 
+                    '4': 'Marrul & Wirralburu',
+                    '5': 'Marrul & Wirralburu',
+                    '6': 'Marrul & Wirralburu',
+                    '7': 'Barrgana',
+                    '8': 'Barrgana',
+                    '9': 'Barrgana',
+                    '10': 'Wirlburu & Laja',
+                    '11': 'Wirlburu & Laja',
+                    '12': 'Man-gala'}
 
     return month_idx.to_series().apply(lambda x: season_dict[str(x)]).values
 

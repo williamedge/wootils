@@ -46,7 +46,7 @@ def get_2Dcmap_gridded(u_data, v_data, u_bound, v_bound, stampcmap='peak', **cs_
     return cmap, stamp
 
 
-def cmap_ax(ax, stamp, xticks, yticks, position=[-0.09,0.88], width=0.2, xlabel='U', ylabel='V'):
+def cmap_ax(ax, stamp, xticks, yticks, position=[-0.09,0.88], width=0.2, xlabel='U', ylabel='V', arrows=True):
     cmap_ax = stamp.overlay_ax(ax, lower_left_corner=position, width=width)
     cmap_ax.set_yticks(yticks)
     cmap_ax.set_xticks(xticks)
@@ -54,10 +54,11 @@ def cmap_ax(ax, stamp, xticks, yticks, position=[-0.09,0.88], width=0.2, xlabel=
     cmap_ax.xaxis.set_label_position('top')
     cmap_ax.set_xlabel(xlabel)
     cmap_ax.set_ylabel(ylabel, rotation=0)
-    cmap_ax.text(0.1, 0.9, r'$\nwarrow$', transform=cmap_ax.transAxes, ha='center', va='center')
-    cmap_ax.text(0.1, 0.1, r'$\swarrow$', transform=cmap_ax.transAxes, ha='center', va='center')
-    cmap_ax.text(0.9, 0.9, r'$\nearrow$', transform=cmap_ax.transAxes, ha='center', va='center')
-    cmap_ax.text(0.9, 0.1, r'$\searrow$', transform=cmap_ax.transAxes, ha='center', va='center')
+    if arrows:
+        cmap_ax.text(0.1, 0.9, r'$\nwarrow$', transform=cmap_ax.transAxes, ha='center', va='center')
+        cmap_ax.text(0.1, 0.1, r'$\swarrow$', transform=cmap_ax.transAxes, ha='center', va='center')
+        cmap_ax.text(0.9, 0.9, r'$\nearrow$', transform=cmap_ax.transAxes, ha='center', va='center')
+        cmap_ax.text(0.9, 0.1, r'$\searrow$', transform=cmap_ax.transAxes, ha='center', va='center')
     return cmap_ax
 
 
